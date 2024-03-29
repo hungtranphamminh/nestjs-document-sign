@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { DocsModule } from './signDoc/documents.module';
+import { DocsModule } from './sign-doc/documents.module';
 import { ConfigModule } from '@nestjs/config';
 import { ENV_CONFIG } from './config/configModule.config';
 import { DatabaseModule } from './database/database.module';

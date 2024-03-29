@@ -1,4 +1,4 @@
-import { DocumentContent } from "../interface/document.interface"
+import { DocumentContent, PairDocumentContent } from "../interface/document.interface"
 
 export class documentActionDto {
   signers: string[]
@@ -17,4 +17,10 @@ export class createRawDocDto {
 
 export class retrieveDocDto {
   id: string
+}
+
+export class createPairDocDto {
+  signer: string
+  owner: string
+  content: PairDocumentContent
 }
