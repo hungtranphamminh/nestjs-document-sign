@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put } from '@nestjs/common';
 import { DocumentsService } from './documents.services';
 import { Document } from './interface/document.interface';
 import { createRawDocDto, retrieveDocDto } from './dto/documents.dto';
@@ -34,7 +34,7 @@ export class DocsController {
   }
 
   /* TODO: validate id and user address */
-  @Post('/sign/pair-document')
+  @Put('/sign/pair-document')
   async signPairDocument(@Body() pairDocumentDto: signPairDocDto) {
     return await this.docsService.signPair(pairDocumentDto)
   }
