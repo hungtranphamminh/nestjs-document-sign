@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { DocumentsService } from './documents.services';
 import { Document } from './interface/document.interface';
-import { createPairDocDto, createRawDocDto, retrieveDocDto } from './dto/documents.dto';
+import { createRawDocDto, retrieveDocDto } from './dto/documents.dto';
+import { createPairDocDto, signPairDocDto } from './dto/pairDocument.dto';
+
 
 @Controller('docs')
 export class DocsController {
@@ -24,10 +26,17 @@ export class DocsController {
     return await this.docsService.createRaw(createRawDocumentDto)
   }
 
-  /* pair document sign */
+  /*** PAIR DOCUMENT CONTROLLERS ***/
+
   @Post('/create/pair-document')
   async createPairDocument(@Body() pairDocumentDto: createPairDocDto) {
     return await this.docsService.createPair(pairDocumentDto)
+  }
+
+  /* TODO: validate id and user address */
+  @Post('/sign/pair-document')
+  async signPairDocument(@Body() pairDocumentDto: signPairDocDto) {
+    return await this.docsService.signPair(pairDocumentDto)
   }
 
   /* pair document get doc */
@@ -35,4 +44,6 @@ export class DocsController {
   async retrievePairDocument(@Query() query: retrieveDocDto) {
     return this.docsService.getPairDocument(query)
   }
+
+
 }

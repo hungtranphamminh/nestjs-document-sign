@@ -18,9 +18,3 @@ export class createRawDocDto {
 export class retrieveDocDto {
   id: string
 }
-
-export class createPairDocDto {
-  signer: string
-  owner: string
-  content: PairDocumentContent
-}

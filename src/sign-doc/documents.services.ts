@@ -1,5 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Document, DocumentContent, PairDocument } from './interface/document.interface';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { Document, DocumentContent, PairDocument, SignPairDocument } from './interface/document.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { Raw_Document } from './schemas/rawDocument.schema';
@@ -7,6 +7,8 @@ import { Pair_Document } from './schemas/pairDocument.schema';
 import { Model } from 'mongoose';
 import { retrieveDocDto } from './dto/documents.dto';
 
+
+/* TODO: add error handler */
 
 @Injectable()
 export class DocumentsService {
@@ -61,7 +63,6 @@ export class DocumentsService {
     try {
       result = await newDoc.save()
       this.rawDocs.push(result)
-      console.log("doc add result: ", result)
     }
     catch (error: any) {
       throw new HttpException(
@@ -73,15 +74,16 @@ export class DocumentsService {
   }
 
   /*** PAIR DOCUMENT SERVICES ***/
-  async createPair(doc: PairDocument) {
-    let docWithId: PairDocument = { ...doc }
-    docWithId.id = uuidv4()
 
-    const newDoc = new this.pairDocumentModel(docWithId)
+
+  /** 
+   * @description Create a pair contract to sign
+    */
+  async createPair(doc: PairDocument) {
+    const newDoc = new this.pairDocumentModel(doc)
     let result
     try {
       result = await newDoc.save()
-      console.log("doc add result: ", result)
     }
     catch (error: any) {
       throw new HttpException(
@@ -92,10 +94,20 @@ export class DocumentsService {
     return { documentId: result.id }
   }
 
-  async getPairDocument({ id }: retrieveDocDto) {
-    let result
+  /** 
+   * @description Sign a pair contract by id
+    */
+  async signPair(signPairInfo: SignPairDocument) {
+    let updatedDocument
     try {
-      result = await this.pairDocumentModel.find({ id: id }).exec()
+      updatedDocument = await this.pairDocumentModel.updateOne(
+        { id: signPairInfo.id },
+        { $set: { 'signer.signature': signPairInfo.signer.signature } },
+      );
+
+      if (updatedDocument.nModified === 0) {
+        throw new NotFoundException('Document not found or no change made');
+      }
     }
     catch (error: any) {
       throw new HttpException(
@@ -103,7 +115,24 @@ export class DocumentsService {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
-    console.log("document retrieved: ", result)
+    return "Both parties have reached an agreement on this contract!"
+  }
+
+  /** 
+   * @description Retrieve a pair contract by id
+    */
+  async getPairDocument({ id }: retrieveDocDto) {
+    let result
+    try {
+      result = await this.pairDocumentModel.find({ id: id }).exec()
+      if (result.length === 0) throw new NotFoundException('Document not found or no change made');
+    }
+    catch (error: any) {
+      throw new HttpException(
+        'There was a problem retrieving the document',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
     return result
   }
 

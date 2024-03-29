@@ -10,16 +10,27 @@ export interface DocumentContent {
   createdAt: number
 }
 
-export interface PairDocument {
-  owner: string,
-  signer: string,
-  content: PairDocumentContent,
-  id?: string
+/*** PAIR DOCUMENT INTERFACES ***/
+export interface PairDocumentContent {
+  title: string | null;
+  description: string | null;
+  createdAt: number;
+  fileContent: string | ArrayBuffer | null;
 }
 
-export interface PairDocumentContent {
-  title: string,
-  description: string,
-  createdAt: number
-  fileContent: string | ArrayBuffer
+export interface User {
+  address: string | null;
+  signature: string | null;
+}
+
+export interface PairDocument {
+  signer: User;
+  owner: User;
+  id: string;
+  content: PairDocumentContent;
+}
+
+export interface SignPairDocument {
+  signer: User;
+  id: string
 }
