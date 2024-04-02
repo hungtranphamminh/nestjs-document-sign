@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Query, Put } from '@nestjs/common';
 import { DocumentsService } from './documents.services';
 import { Document } from './interface/document.interface';
 import { createRawDocDto, retrieveDocDto } from './dto/documents.dto';
-import { createPairDocDto, signPairDocDto } from './dto/pairDocument.dto';
+import { createPairDocDto, signPairDocDto } from './dto/pair-document.dto';
 
 
 @Controller('docs')

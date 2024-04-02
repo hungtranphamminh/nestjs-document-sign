@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestj
 import { Document, DocumentContent, PairDocument, SignPairDocument } from './interface/document.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
-import { Raw_Document } from './schemas/rawDocument.schema';
-import { Pair_Document } from './schemas/pairDocument.schema';
+import { Raw_Document } from './schemas/raw-document.schema';
+import { Pair_Document } from './schemas/pair-document.schema';
 import { Model } from 'mongoose';
 import { retrieveDocDto } from './dto/documents.dto';
 
@@ -135,5 +135,4 @@ export class DocumentsService {
     }
     return result
   }
-
 }

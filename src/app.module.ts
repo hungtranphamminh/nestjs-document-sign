@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { DocsModule } from './sign-doc/documents.module';
 import { ConfigModule } from '@nestjs/config';
-import { ENV_CONFIG } from './config/configModule.config';
+import { ENV_CONFIG } from './config/config-module.config';
 import { DatabaseModule } from './database/database.module';
 
 @Module({
@@ -11,4 +11,8 @@ import { DatabaseModule } from './database/database.module';
     DocsModule,
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+
+  }
+}

@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { DocsController } from './documents.controller';
 import { DocumentsService } from './documents.services';
 import { MongooseModule } from '@nestjs/mongoose';
-import { RawDocumentSchema, Raw_Document } from './schemas/rawDocument.schema';
-import { PairDocumentSchema, Pair_Document } from './schemas/pairDocument.schema';
+import { RawDocumentSchema, Raw_Document } from './schemas/raw-document.schema';
+import { PairDocumentSchema, Pair_Document } from './schemas/pair-document.schema';
+import { DocumentAccessMiddleware, SignatureValidationMiddleware } from 'src/middlewares/pair-document.middleware';
 
 @Module({
   imports: [MongooseModule.forFeature([
@@ -14,4 +15,10 @@ import { PairDocumentSchema, Pair_Document } from './schemas/pairDocument.schema
   controllers: [DocsController],
   providers: [DocumentsService],
 })
-export class DocsModule { }
+export class DocsModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(DocumentAccessMiddleware, SignatureValidationMiddleware)
+      .forRoutes('docs/sign/pair-document')
+  }
+}

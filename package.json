@@ -24,10 +24,15 @@
     "@nestjs/core": "^10.3.2",
     "@nestjs/mongoose": "^10.0.4",
     "@nestjs/platform-express": "^10.3.2",
+    "@solana/web3.js": "^1.91.3",
+    "bs58": "^5.0.0",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "4.1",
     "mongoose": "^8.2.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
