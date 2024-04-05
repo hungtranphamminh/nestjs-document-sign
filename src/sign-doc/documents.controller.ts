@@ -3,6 +3,7 @@ import { DocumentsService } from './documents.services';
 import { Document } from './interface/document.interface';
 import { createRawDocDto, retrieveDocDto } from './dto/documents.dto';
 import { createPairDocDto, signPairDocDto } from './dto/pair-document.dto';
+import { createPairDocWSigDto } from './dto/pair-documentV2.dto';
 
 
 @Controller('docs')
@@ -13,7 +14,6 @@ export class DocsController {
   async findAll(): Promise<{ fDocs: Document[], rDocs: Document[] }> {
     return this.docsService.findAll();
   }
-
 
   /* multi sign message */
   @Get('/retrieve/raw-message')
@@ -45,5 +45,14 @@ export class DocsController {
     return this.docsService.getPairDocument(query)
   }
 
+  @Post('/pair-document-wsig/create')
+  async createPairDocumentWSig(@Body() pairDocumentDto: createPairDocWSigDto) {
+    return await this.docsService.createPairWSig(pairDocumentDto)
+  }
 
+  /* pair document get doc */
+  @Get('/pair-document-wsig/retrieve')
+  async retrievePairDocumentWSig(@Query() query: retrieveDocDto) {
+    return this.docsService.getPairDocumentWSig(query)
+  }
 }

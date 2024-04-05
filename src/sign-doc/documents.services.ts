@@ -6,7 +6,9 @@ import { Raw_Document } from './schemas/raw-document.schema';
 import { Pair_Document } from './schemas/pair-document.schema';
 import { Model } from 'mongoose';
 import { retrieveDocDto } from './dto/documents.dto';
-
+import { PDFDocument, PDFImage, degrees } from 'pdf-lib';
+import { PairDocumentWSig } from './interface/documentV2.interface';
+import { Pair_Document_W_Sig } from './schemas/pair-documentV2.schema';
 
 /* TODO: add error handler */
 
@@ -15,7 +17,8 @@ export class DocumentsService {
 
   constructor(
     @InjectModel(Raw_Document.name) private rawDocumentModel: Model<Raw_Document>,
-    @InjectModel(Pair_Document.name) private pairDocumentModel: Model<Pair_Document>
+    @InjectModel(Pair_Document.name) private pairDocumentModel: Model<Pair_Document>,
+    @InjectModel(Pair_Document_W_Sig.name) private pairDocumentWSigModel: Model<Pair_Document_W_Sig>
   ) { }
 
   private readonly docs: Document[] = [];
@@ -135,4 +138,81 @@ export class DocumentsService {
     }
     return result
   }
+
+  /** 
+   * @description Create pair document with signature
+    */
+  async createPairWSig(doc: PairDocumentWSig) {
+
+    const addSignatureToPDF = async (pdfBase64: string, signatureBase64: string): Promise<any> => {
+      // Convert the base64 strings back to Buffers
+      const pdfBytes = Buffer.from(pdfBase64, 'base64');
+      const signatureBytes = Buffer.from(signatureBase64, 'base64');
+
+      // Load the PDF
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+
+      // Embed the signature image
+      const signatureImage = await pdfDoc.embedPng(signatureBytes);
+
+      // Get the first page of the PDF
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+
+      // Draw the signature image on the first page
+      firstPage.drawImage(signatureImage, {
+        x: firstPage.getWidth() / 2,
+        y: firstPage.getHeight() / 2,
+        height: 30,
+      });
+
+      // Save the PDF
+      const outputPdfBytes = await pdfDoc.save();
+      return outputPdfBytes;
+    }
+
+    const onlyDataPdf = doc.content.fileContent.split(',')[1];
+    const onlyDataSig = doc.owner.signaturePDF.content.split(',')[1];
+
+    const modifyPdf = await addSignatureToPDF(onlyDataPdf, onlyDataSig)
+    const base64Pdf = 'data:application/pdf;base64,' + Buffer.from(modifyPdf).toString('base64');
+
+    let signedDoc = doc
+
+    signedDoc.content.fileContent = base64Pdf
+
+    const newDoc = new this.pairDocumentWSigModel(signedDoc)
+    let result
+    try {
+      result = await newDoc.save()
+    }
+    catch (error: any) {
+      console.log("error: ", error)
+      throw new HttpException(
+        'There was a problem creating the document',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+    return { documentId: result.id }
+  }
+
+  /** 
+   * @description Retrieve a pair contract by id
+    */
+  async getPairDocumentWSig({ id }: retrieveDocDto) {
+    let result
+    try {
+      result = await this.pairDocumentWSigModel.find({ id: id }).exec()
+      if (result.length === 0) throw new NotFoundException('Document not found or no change made');
+    }
+    catch (error: any) {
+      throw new HttpException(
+        'There was a problem retrieving the document',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+    return result
+  }
 }
+
+
