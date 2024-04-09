@@ -21,7 +21,7 @@ import { PairDocumentWSigSchema, Pair_Document_W_Sig } from './schemas/pair-docu
 export class DocsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(DocumentAccessMiddleware, SignatureValidationMiddleware)
-      .forRoutes('docs/sign/pair-document')
+      .apply(SignatureValidationMiddleware)
+      .forRoutes('docs/pair-document-wsig/*')
   }
 }
