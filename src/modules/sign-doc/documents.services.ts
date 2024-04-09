@@ -144,7 +144,11 @@ export class DocumentsService {
     let result
     try {
       /* draw the signature onto the pdf  */
-      const modifiedPdf = await addSignatureToPDF(doc, 50, 50)
+      const modifiedPdf = await addSignatureToPDF(
+        doc,
+        doc.owner.signaturePDF.position.x,
+        doc.owner.signaturePDF.position.y
+      )
 
       let signedDoc = doc
       signedDoc.content.fileContent = modifiedPdf
