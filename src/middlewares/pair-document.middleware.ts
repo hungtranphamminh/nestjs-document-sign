@@ -2,7 +2,7 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import *  as nacl from 'tweetnacl';
-import { DocumentsService } from 'src/sign-doc/documents.services';
+import { DocumentsService } from 'src/modules/sign-doc/documents.services';
 import { decode } from 'bs58';
 import { decodeUTF8 } from 'tweetnacl-util';
 

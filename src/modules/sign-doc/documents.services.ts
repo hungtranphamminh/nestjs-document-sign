@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { Document, DocumentContent, PairDocument, SignPairDocument } from './interface/document.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,8 +7,9 @@ import { Pair_Document } from './schemas/pair-document.schema';
 import { Model } from 'mongoose';
 import { retrieveDocDto } from './dto/documents.dto';
 import { PDFDocument, PDFImage, degrees } from 'pdf-lib';
-import { PairDocumentWSig } from './interface/documentV2.interface';
+import { PairDocumentWSig, SignPairDocumentWSig } from './interface/documentV2.interface';
 import { Pair_Document_W_Sig } from './schemas/pair-documentV2.schema';
+import { addSignatureToPDF, retrieveDocumentWithId, verifySignatureSpace } from 'src/utils/sign-doc/pdf-actions';
 
 /* TODO: add error handler */
 
@@ -37,8 +38,6 @@ export class DocumentsService {
   findAllRelated(signer: string): Document[] {
     return this.docs
   }
-
-
 
   /** @description retrieve raw message by id */
   async retrieveRawMessage({ id }: retrieveDocDto) {
@@ -77,7 +76,6 @@ export class DocumentsService {
   }
 
   /*** PAIR DOCUMENT SERVICES ***/
-
 
   /** 
    * @description Create a pair contract to sign
@@ -143,47 +141,15 @@ export class DocumentsService {
    * @description Create pair document with signature
     */
   async createPairWSig(doc: PairDocumentWSig) {
-
-    const addSignatureToPDF = async (pdfBase64: string, signatureBase64: string): Promise<any> => {
-      // Convert the base64 strings back to Buffers
-      const pdfBytes = Buffer.from(pdfBase64, 'base64');
-      const signatureBytes = Buffer.from(signatureBase64, 'base64');
-
-      // Load the PDF
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-
-      // Embed the signature image
-      const signatureImage = await pdfDoc.embedPng(signatureBytes);
-
-      // Get the first page of the PDF
-      const pages = pdfDoc.getPages();
-      const firstPage = pages[0];
-
-      // Draw the signature image on the first page
-      firstPage.drawImage(signatureImage, {
-        x: firstPage.getWidth() / 2,
-        y: firstPage.getHeight() / 2,
-        height: 30,
-      });
-
-      // Save the PDF
-      const outputPdfBytes = await pdfDoc.save();
-      return outputPdfBytes;
-    }
-
-    const onlyDataPdf = doc.content.fileContent.split(',')[1];
-    const onlyDataSig = doc.owner.signaturePDF.content.split(',')[1];
-
-    const modifyPdf = await addSignatureToPDF(onlyDataPdf, onlyDataSig)
-    const base64Pdf = 'data:application/pdf;base64,' + Buffer.from(modifyPdf).toString('base64');
-
-    let signedDoc = doc
-
-    signedDoc.content.fileContent = base64Pdf
-
-    const newDoc = new this.pairDocumentWSigModel(signedDoc)
     let result
     try {
+      /* draw the signature onto the pdf  */
+      const modifiedPdf = await addSignatureToPDF(doc, 50, 50)
+
+      let signedDoc = doc
+      signedDoc.content.fileContent = modifiedPdf
+
+      const newDoc = new this.pairDocumentWSigModel(signedDoc)
       result = await newDoc.save()
     }
     catch (error: any) {
@@ -200,19 +166,49 @@ export class DocumentsService {
    * @description Retrieve a pair contract by id
     */
   async getPairDocumentWSig({ id }: retrieveDocDto) {
+    let result = await retrieveDocumentWithId(this.pairDocumentWSigModel, id)
+    return result
+  }
+
+  /** 
+   * @description Sign a pair contract by id
+    */
+  async signPairWSig(signPairInfo: SignPairDocumentWSig) {
+    let documents = await retrieveDocumentWithId(this.pairDocumentWSigModel, signPairInfo.id)
+    let pdfContent = documents[0].content.fileContent
+    let ownerSignaturePos = [documents[0].owner.signaturePDF.position]
+
+    if (!verifySignatureSpace(
+      signPairInfo.signer.signaturePDF.position.x,
+      signPairInfo.signer.signaturePDF.position.y,
+      ownerSignaturePos)) {
+      throw new BadRequestException('Invalid overlapped signature position')
+    }
+
     let result
     try {
-      result = await this.pairDocumentWSigModel.find({ id: id }).exec()
-      if (result.length === 0) throw new NotFoundException('Document not found or no change made');
+      /* draw the signature onto the pdf  */
+      const modifiedPdf = await await addSignatureToPDF(
+        pdfContent,
+        signPairInfo.signer.signaturePDF.position.x,
+        signPairInfo.signer.signaturePDF.position.y,
+      )
+      let signedDoc = documents[0]
+      signedDoc.content.fileContent = modifiedPdf
+
+      const newDoc = new this.pairDocumentWSigModel(signedDoc)
+      result = await newDoc.save()
     }
-    catch (error: any) {
+    catch (error) {
+      console.log("error: ", error)
       throw new HttpException(
-        'There was a problem retrieving the document',
+        'There was a problem signing the document',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
-    return result
+    return "Both parties have reached an agreement on this contract!"
   }
+
 }
 
 

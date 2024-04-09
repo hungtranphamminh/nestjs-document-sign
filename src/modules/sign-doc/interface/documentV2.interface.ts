@@ -6,15 +6,17 @@ export interface PairDocumentContentWSig {
   fileContent: string | null;
 }
 
+export interface PDFPosition {
+  x: number,
+  y: number
+}
+
 export interface UserWSig {
   address: string | null;
   signatureSolana: string | null;
   signaturePDF: {
     content: string | null;
-    position: {
-      x: number,
-      y: number
-    }
+    position: PDFPosition
   }
 }
 

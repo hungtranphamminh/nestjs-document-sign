@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { DocsModule } from './sign-doc/documents.module';
+import { DocsModule } from './modules/sign-doc/documents.module';
 import { ConfigModule } from '@nestjs/config';
 import { ENV_CONFIG } from './config/config-module.config';
 import { DatabaseModule } from './database/database.module';
