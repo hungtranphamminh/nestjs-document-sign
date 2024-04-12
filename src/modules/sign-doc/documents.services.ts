@@ -179,7 +179,7 @@ export class DocumentsService {
     */
   async signPairWSig(signPairInfo: SignPairDocumentWSig) {
     let documents = await retrieveDocumentWithId(this.pairDocumentWSigModel, signPairInfo.id)
-    let pdfContent = documents[0].content.fileContent
+    let pdfContent = documents[0]
     let ownerSignaturePos = [documents[0].owner.signaturePDF.position]
 
     if (!verifySignatureSpace(
@@ -192,7 +192,7 @@ export class DocumentsService {
     let result
     try {
       /* draw the signature onto the pdf  */
-      const modifiedPdf = await await addSignatureToPDF(
+      const modifiedPdf = await addSignatureToPDF(
         pdfContent,
         signPairInfo.signer.signaturePDF.position.x,
         signPairInfo.signer.signaturePDF.position.y,
