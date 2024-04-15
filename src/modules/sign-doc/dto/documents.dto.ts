@@ -1,4 +1,4 @@
-import { DocumentContent } from "../interface/document.interface"
+import { DocumentContent, PairDocumentContent } from "../interface/document.interface"
 
 export class documentActionDto {
   signers: string[]

@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
-import { DocsModule } from './signDoc/documents.module';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { DocsModule } from './modules/sign-doc/documents.module';
 import { ConfigModule } from '@nestjs/config';
-import { ENV_CONFIG } from './config/configModule.config';
+import { ENV_CONFIG } from './config/config-module.config';
 import { DatabaseModule } from './database/database.module';
+import { JwtAuthenticationMiddleware } from './middlewares/jwt-auth.middleware';
 
 @Module({
   imports: [
@@ -11,4 +12,10 @@ import { DatabaseModule } from './database/database.module';
     DocsModule,
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(JwtAuthenticationMiddleware)
+      .forRoutes('*');
+  }
+}
